@@ -1,30 +1,66 @@
-import React, { ChangeEvent, useState } from "react";
+import { ChangeEvent, useCallback, FC } from "react";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
+import { validateParsedDataHeadings } from "@/lib/utils";
 
-const CsvUploader: React.FC = () => {
-  const [error, setError] = useState<string | null>(null);
+const dataStructHeadings = [
+  "Investment Option Name",
+  "Asset Class",
+  "Asset Name",
+  "Asset Identifier",
+  "Dollar Value",
+  "Currency",
+  "GICS Sector Code and Name",
+  "GICS Industry Group Code & Name",
+  "GICS Industry Code & name",
+  "GICS Sub-Industry Code and Name",
+];
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files && event.target.files[0];
+const FileUpload: FC = () => {
+  const handleFileUpload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
 
-    if (file) {
-      const fileType = file.type;
+    const fileType = file.name.split(".").pop();
+    const reader = new FileReader();
 
-      if (fileType !== "text/csv") {
-        setError("Please upload a CSV file");
-      } else {
-        setError(null);
-        // do something with the CSV file here
-      }
+    if (fileType === "csv") {
+      reader.onload = () => {
+        const csvData = reader.result;
+        const parsedData = Papa.parse(csvData as string, {
+          header: false,
+        }).data;
+        if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
+          console.log(parsedData);
+        } else {
+          console.error("Invalid data format");
+        }
+      };
+      reader.readAsText(file);
+    } else if (fileType === "xlsx") {
+      reader.onload = () => {
+        const data = new Uint8Array(reader.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
+          console.log(parsedData);
+        } else {
+          console.error("Invalid data format");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      console.error("Unsupported file type");
     }
-  };
+  }, []);
 
   return (
-    <div className="flex flex-col mb-24">
-      <h1 className="text-2xl font-bold my-4">Upload CSV File: </h1>
-      <input type="file" accept=".csv" onChange={handleFileUpload} />
-      {error && <div style={{ color: "red" }}>{error}</div>}
+    <div>
+      <input type="file" accept=".csv,.xlsx" onChange={handleFileUpload} />
     </div>
   );
 };
 
-export default CsvUploader;
+export default FileUpload;
