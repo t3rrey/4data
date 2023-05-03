@@ -1,5 +1,11 @@
+import RecentUploads from "@/components/RecentUploads";
+
 const Index = () => {
-  return <h1>index</h1>;
+  return (
+    <div>
+      <RecentUploads />
+    </div>
+  );
 };
 
 export default Index;

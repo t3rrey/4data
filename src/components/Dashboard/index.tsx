@@ -5,6 +5,7 @@ import {
   HomeIcon,
   XMarkIcon,
   PlusCircleIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import BTFinancialLogo from "../logo";
 import { useRouter } from "next/router";
@@ -12,6 +13,12 @@ import { useRouter } from "next/router";
 let navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
   { name: "Add Data", href: "/upload", icon: PlusCircleIcon, current: false },
+  {
+    name: "Search",
+    href: "/search",
+    icon: MagnifyingGlassIcon,
+    current: false,
+  },
 ];
 
 function classNames(...classes: string[]) {
@@ -177,7 +184,7 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
                       alt=""
                     />
                     <span className="sr-only">Your profile</span>
-                    <span aria-hidden="true">Tom Cook</span>
+                    <span aria-hidden="true">Test User</span>
                   </a>
                 </li>
               </ul>

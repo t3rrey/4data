@@ -5,7 +5,90 @@ const upload = [
     sector: "Healthcare",
     status: "Pending",
   },
-  // More people...
+  {
+    name: "Hostplus",
+    date: "05-Jun-2019",
+    sector: "Financials",
+    status: "Approved",
+  },
+  {
+    name: "REST",
+    date: "22-Sep-2021",
+    sector: "Information Technology",
+    status: "Pending",
+  },
+  {
+    name: "Sunsuper",
+    date: "12-Dec-2018",
+    sector: "Materials",
+    status: "Approved",
+  },
+  {
+    name: "Cbus",
+    date: "28-Jan-2022",
+    sector: "Consumer Discretionary",
+    status: "Pending",
+  },
+  {
+    name: "UniSuper",
+    date: "19-Oct-2017",
+    sector: "Utilities",
+    status: "Approved",
+  },
+  {
+    name: "First State Super",
+    date: "14-Apr-2022",
+    sector: "Real Estate",
+    status: "Pending",
+  },
+  {
+    name: "QSuper",
+    date: "30-Nov-2020",
+    sector: "Industrials",
+    status: "Approved",
+  },
+  {
+    name: "Hesta",
+    date: "07-Aug-2019",
+    sector: "Consumer Staples",
+    status: "Pending",
+  },
+  {
+    name: "LUCRF Super",
+    date: "08-Feb-2021",
+    sector: "Energy",
+    status: "Approved",
+  },
+  {
+    name: "EquipSuper",
+    date: "23-May-2018",
+    sector: "Materials",
+    status: "Pending",
+  },
+  {
+    name: "CareSuper",
+    date: "11-Jul-2019",
+    sector: "Healthcare",
+    status: "Approved",
+  },
+  {
+    name: "NGS Super",
+    date: "04-Sep-2020",
+    sector: "Financials",
+    status: "Pending",
+  },
+  {
+    name: "Australian Catholic Super",
+    date: "16-Jun-2021",
+    sector: "Information Technology",
+    status: "Approved",
+  },
+  {
+    name: "Mine Wealth + Wellbeing",
+    date: "27-Dec-2017",
+    sector: "Consumer Discretionary",
+    status: "Pending",
+  },
 ];
 
 export default function RecentUploads() {
@@ -17,14 +100,6 @@ export default function RecentUploads() {
             Recent Uploads
           </h1>
         </div>
-        {/* <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            type="button"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add user
-          </button>
-        </div> */}
       </div>
       <div className="mt-8 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

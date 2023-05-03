@@ -8,8 +8,8 @@ type SuperFund = {
 };
 
 const superFunds: SuperFund[] = [
-  { fund: "Australian Super", fundSubCategory: "" },
-  { fund: "Australian Super", fundSubCategory: "" },
+  { fund: "Australian Super", fundSubCategory: "Balanced" },
+  { fund: "Australian Super", fundSubCategory: "High Risk" },
   { fund: "Australian Super", fundSubCategory: "" },
   { fund: "Australian Super", fundSubCategory: "" },
   { fund: "Australian Super", fundSubCategory: "" },
