@@ -1,34 +1,47 @@
-import { Fragment, useState } from "react";
+import { FC, Fragment, useState, ReactNode, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Bars3Icon, HomeIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import CsvUploader from "../DataInput";
-import RecentUploads from "../RecentUploads";
+import {
+  Bars3Icon,
+  HomeIcon,
+  XMarkIcon,
+  PlusCircleIcon,
+} from "@heroicons/react/24/outline";
 import BTFinancialLogo from "../logo";
+import { useRouter } from "next/router";
 
-const navigation = [
-  { name: "Dashboard", href: "#", icon: HomeIcon, current: true },
-];
-const teams = [
-  { id: 1, name: "BT Financial", href: "#", initial: "BT", current: false },
+let navigation = [
+  { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
+  { name: "Add Data", href: "/upload", icon: PlusCircleIcon, current: false },
 ];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Dashboard() {
+type DashboardLayoutProps = {
+  children?: ReactNode;
+};
+
+const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+
+  const updateNavigationCurrent = () => {
+    navigation = navigation.map((item) => {
+      return {
+        ...item,
+        current: router.asPath === item.href,
+      };
+    });
+  };
+
+  useEffect(() => {
+    updateNavigationCurrent();
+    console.log(router.asPath);
+  }, [router.asPath, updateNavigationCurrent]);
 
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
@@ -112,31 +125,6 @@ export default function Dashboard() {
                             ))}
                           </ul>
                         </li>
-                        <li>
-                          <div className="text-xs font-semibold leading-6 text-gray-400">
-                            Your teams
-                          </div>
-                          <ul role="list" className="-mx-2 mt-2 space-y-1">
-                            {teams.map((team) => (
-                              <li key={team.name}>
-                                <a
-                                  href={team.href}
-                                  className={classNames(
-                                    team.current
-                                      ? "bg-gray-800 text-white"
-                                      : "text-gray-400 hover:text-white hover:bg-gray-800",
-                                    "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
-                                  )}
-                                >
-                                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
-                                    {team.initial}
-                                  </span>
-                                  <span className="truncate">{team.name}</span>
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
                       </ul>
                     </nav>
                   </div>
@@ -173,31 +161,6 @@ export default function Dashboard() {
                             aria-hidden="true"
                           />
                           {item.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-                <li>
-                  <div className="text-xs font-semibold leading-6 text-gray-400">
-                    Your teams
-                  </div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {teams.map((team) => (
-                      <li key={team.name}>
-                        <a
-                          href={team.href}
-                          className={classNames(
-                            team.current
-                              ? "bg-gray-800 text-white"
-                              : "text-gray-400 hover:text-white hover:bg-gray-800",
-                            "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
-                          )}
-                        >
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
-                            {team.initial}
-                          </span>
-                          <span className="truncate">{team.name}</span>
                         </a>
                       </li>
                     ))}
@@ -243,14 +206,12 @@ export default function Dashboard() {
             />
           </a>
         </div>
-
         <main className="py-10 lg:pl-72">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <RecentUploads />
-            <CsvUploader />
-          </div>
+          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </>
   );
-}
+};
+
+export default Dashboard;
