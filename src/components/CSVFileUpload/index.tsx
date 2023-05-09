@@ -1,8 +1,10 @@
-import { ChangeEvent, useCallback, FC } from "react";
+import { ChangeEvent, useCallback, FC, useState } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { validateParsedDataHeadings } from "@/lib/utils";
 import { supabase } from "@/lib/database/supabase";
+import { TableCellsIcon } from "@heroicons/react/20/solid";
+import SuccessfulUploadModal from "../SuccessfulUploadModal";
 
 const dataStructHeadings = [
   "Investment Option Name",
@@ -95,8 +97,7 @@ const mapParsedDataToJSON = (parsedData: any[]): mappedDataStruct[] => {
           rowObject.gicsSubIndustryCodeAndName = value;
           break;
         default:
-          break;
-        // console.error(`Invalid column header: ${header}`);
+          console.error(`Invalid column header: ${header}`);
       }
     });
 
@@ -105,6 +106,19 @@ const mapParsedDataToJSON = (parsedData: any[]): mappedDataStruct[] => {
 };
 
 const CSVFileUpload: FC = () => {
+  const [successfulUploadModalOpen, setSuccessfulUploadModalOpen] =
+    useState(false);
+
+  const subscribedDataUpdated = supabase
+    .channel("custom-update-channel")
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "data" },
+      (payload) => {
+        console.log("Change received!", payload);
+      }
+    )
+    .subscribe();
   const uploadToSupabase = async (parsedData: any[]) => {
     try {
       const { error } = await supabase.from("data").insert(parsedData);
@@ -133,10 +147,8 @@ const CSVFileUpload: FC = () => {
           }).data;
           if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
             const slicedParsedData = parsedData.slice(0, 5);
-            console.log("CSV Sliced extract:", slicedParsedData);
             const mappedData = mapParsedDataToJSON(slicedParsedData);
             await uploadToSupabase(mappedData);
-            console.log("success upload");
           } else {
             console.error("Invalid data format");
           }
@@ -150,16 +162,12 @@ const CSVFileUpload: FC = () => {
           const worksheet = workbook.Sheets[sheetName];
           const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-            console.log("CSV extract:", parsedData.slice(0, 4));
-            console.log(
-              "CSV Parsed extract:",
-              mapParsedDataToJSON(parsedData.slice(0, 4))
-            );
-            const slicedParsedData = parsedData.slice(0, 5);
+            const slicedParsedData = parsedData;
             console.log("CSV Sliced extract:", slicedParsedData);
             const mappedData = mapParsedDataToJSON(slicedParsedData);
             await uploadToSupabase(mappedData);
             console.log("success upload");
+            setSuccessfulUploadModalOpen(true);
           } else {
             console.error("Invalid data format");
           }
@@ -173,12 +181,37 @@ const CSVFileUpload: FC = () => {
   );
 
   return (
-    <input
-      type="file"
-      name="file-upload"
-      className="bg-red-500"
-      onChange={handleFileUpload}
-    />
+    <>
+      {successfulUploadModalOpen ? <SuccessfulUploadModal /> : null}
+
+      <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+        <div className="text-center">
+          <TableCellsIcon
+            className="mx-auto h-12 w-12 text-gray-300"
+            aria-hidden="true"
+          />
+          <div className="mt-4 flex text-sm leading-6 text-gray-600">
+            <label
+              htmlFor="file-upload"
+              className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
+            >
+              <span className="mx-auto">Upload a file</span>
+              <input
+                id="file-upload"
+                name="file-upload"
+                type="file"
+                className="sr-only"
+                onChange={handleFileUpload}
+              />
+            </label>
+            {/* <p className="pl-1">or drag and drop</p> */}
+          </div>
+          <p className="text-xs leading-5 text-gray-600">
+            PNG, JPG, GIF up to 10MB
+          </p>
+        </div>
+      </div>
+    </>
   );
 };
 
