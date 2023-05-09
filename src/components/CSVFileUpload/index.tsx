@@ -1,9 +1,8 @@
-import { ChangeEvent, useCallback, FC, useMemo } from "react";
+import { ChangeEvent, useCallback, FC } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { validateParsedDataHeadings } from "@/lib/utils";
-import { TableCellsIcon } from "@heroicons/react/24/outline";
-import { useDropzone } from "react-dropzone";
+import { supabase } from "@/lib/database/supabase";
 
 const dataStructHeadings = [
   "Investment Option Name",
@@ -18,36 +17,149 @@ const dataStructHeadings = [
   "GICS Sub-Industry Code and Name",
 ];
 
+const dataStructHeadingsCC = [
+  "investmentOptionName",
+  "assetClass",
+  "assetName",
+  "assetIdentifier",
+  "dollarValue",
+  "currency",
+  "gicsSectorCodeAndName",
+  "gicsIndustryGroupCodeAndName",
+  "gicsIndustryCodeAndName",
+  "gicsSubIndustryCodeAndName",
+];
+
+export type mappedDataStruct = {
+  investmentOptionName: string | null;
+  assetClass: string | null;
+  assetName: string | null;
+  assetIdentifier: string | null;
+  dollarValue: number | null;
+  currency: string | null;
+  gicsSectorCodeAndName: string | null;
+  gicsIndustryGroupCodeAndName: string | null;
+  gicsIndustryCodeAndName: string | null;
+  gicsSubIndustryCodeAndName: string | null;
+};
+
+const mapParsedDataToJSON = (parsedData: any[]): mappedDataStruct[] => {
+  const headers = parsedData[0];
+  const dataRows = parsedData.slice(1);
+
+  return dataRows.map((row) => {
+    const rowObject: mappedDataStruct = {
+      investmentOptionName: null,
+      assetClass: null,
+      assetName: null,
+      dollarValue: null,
+      assetIdentifier: null,
+      currency: null,
+      gicsSectorCodeAndName: null,
+      gicsIndustryGroupCodeAndName: null,
+      gicsIndustryCodeAndName: null,
+      gicsSubIndustryCodeAndName: null,
+    };
+
+    row.forEach((value: string, index: number) => {
+      const header = headers[index];
+      switch (header) {
+        case "Investment Option Name":
+          rowObject.investmentOptionName = value;
+          break;
+        case "Asset Class":
+          rowObject.assetClass = value;
+          break;
+        case "Asset Name":
+          rowObject.assetName = value;
+          break;
+        case "Asset Identifier":
+          rowObject.assetIdentifier = value;
+          break;
+        case "Dollar Value":
+          rowObject.dollarValue = parseFloat(value);
+          break;
+        case "Currency":
+          rowObject.currency = value;
+          break;
+        case "GICS Sector Code and Name":
+          rowObject.gicsSectorCodeAndName = value;
+          break;
+        case "GICS Industry Group Code & Name":
+          rowObject.gicsIndustryGroupCodeAndName = value;
+          break;
+        case "GICS Industry Code & name":
+          rowObject.gicsIndustryCodeAndName = value;
+          break;
+        case "GICS Sub-Industry Code and Name":
+          rowObject.gicsSubIndustryCodeAndName = value;
+          break;
+        default:
+          break;
+        // console.error(`Invalid column header: ${header}`);
+      }
+    });
+
+    return rowObject;
+  });
+};
+
 const CSVFileUpload: FC = () => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    acceptedFiles.forEach((file) => {
+  const uploadToSupabase = async (parsedData: any[]) => {
+    try {
+      const { error } = await supabase.from("data").insert(parsedData);
+      if (error) {
+        throw error;
+      }
+      console.log("success");
+    } catch (error) {
+      console.error("Error uploading data:", error);
+    }
+  };
+
+  const handleFileUpload = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files && e.target.files[0];
       if (!file) return;
 
       const fileType = file.name.split(".").pop();
       const reader = new FileReader();
 
       if (fileType === "csv") {
-        reader.onload = () => {
+        reader.onload = async () => {
           const csvData = reader.result;
           const parsedData = Papa.parse(csvData as string, {
             header: false,
           }).data;
           if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-            console.log(parsedData);
+            const slicedParsedData = parsedData.slice(0, 5);
+            console.log("CSV Sliced extract:", slicedParsedData);
+            const mappedData = mapParsedDataToJSON(slicedParsedData);
+            await uploadToSupabase(mappedData);
+            console.log("success upload");
           } else {
             console.error("Invalid data format");
           }
         };
         reader.readAsText(file);
       } else if (fileType === "xlsx") {
-        reader.onload = () => {
+        reader.onload = async () => {
           const data = new Uint8Array(reader.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: "array" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-            console.log(parsedData);
+            console.log("CSV extract:", parsedData.slice(0, 4));
+            console.log(
+              "CSV Parsed extract:",
+              mapParsedDataToJSON(parsedData.slice(0, 4))
+            );
+            const slicedParsedData = parsedData.slice(0, 5);
+            console.log("CSV Sliced extract:", slicedParsedData);
+            const mappedData = mapParsedDataToJSON(slicedParsedData);
+            await uploadToSupabase(mappedData);
+            console.log("success upload");
           } else {
             console.error("Invalid data format");
           }
@@ -56,103 +168,17 @@ const CSVFileUpload: FC = () => {
       } else {
         console.error("Unsupported file type");
       }
-    });
-  }, []);
-
-  const handleFileUpload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-
-    const fileType = file.name.split(".").pop();
-    const reader = new FileReader();
-
-    if (fileType === "csv") {
-      reader.onload = () => {
-        const csvData = reader.result;
-        const parsedData = Papa.parse(csvData as string, {
-          header: false,
-        }).data;
-        if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-          console.log(parsedData);
-        } else {
-          console.error("Invalid data format");
-        }
-      };
-      reader.readAsText(file);
-    } else if (fileType === "xlsx") {
-      reader.onload = () => {
-        const data = new Uint8Array(reader.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-          console.log(parsedData);
-        } else {
-          console.error("Invalid data format");
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-      console.error("Unsupported file type");
-    }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-
-  const baseClasses =
-    "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg bg-white transition-colors duration-200 ease-in-out";
-  const activeClasses = "border-indigo-600";
+    },
+    []
+  );
 
   return (
-    <div className="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-      <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-        <label
-          htmlFor="cover-photo"
-          className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
-        >
-          Data
-        </label>
-        <div className="mt-2 sm:col-span-2 sm:mt-0">
-          <div
-            className={`${baseClasses} ${
-              isDragActive ? activeClasses : "border-gray-200"
-            }`}
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <p>Drop the files here...</p>
-            ) : (
-              <div className="text-center">
-                <TableCellsIcon
-                  className="mx-auto h-12 w-12 text-gray-300"
-                  aria-hidden="true"
-                />
-                <div className="mt-4 flex text-sm leading-6 text-gray-600">
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
-                  >
-                    <span>Upload a file</span>
-                    <input
-                      type="file"
-                      accept=".csv,.xlsx"
-                      onChange={handleFileUpload}
-                      id="file-upload"
-                      name="file-upload"
-                      className="sr-only"
-                    />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs leading-5 text-gray-600">CSV or XLSX</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <input
+      type="file"
+      name="file-upload"
+      className="bg-red-500"
+      onChange={handleFileUpload}
+    />
   );
 };
 
