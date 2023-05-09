@@ -1,3 +1,5 @@
+import { supabase } from "../database/supabase";
+
 /**
  *
  * @param data  the data to be validated
@@ -31,4 +33,16 @@ export const formatCurrency = (
   }).format(input);
 
   return formatted.substring(1);
+};
+
+export const uploadToSupabase = async (parsedData: any[], table: string) => {
+  try {
+    const { error } = await supabase.from(table).insert(parsedData);
+    if (error) {
+      throw error;
+    }
+    console.log("success");
+  } catch (error) {
+    console.error("Error uploading data:", error);
+  }
 };

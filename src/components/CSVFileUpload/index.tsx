@@ -2,35 +2,10 @@ import { ChangeEvent, useCallback, FC, useState } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { validateParsedDataHeadings } from "@/lib/utils";
-import { supabase } from "@/lib/database/supabase";
 import { TableCellsIcon } from "@heroicons/react/20/solid";
 import SuccessfulUploadModal from "../SuccessfulUploadModal";
-
-const dataStructHeadings = [
-  "Investment Option Name",
-  "Asset Class",
-  "Asset Name",
-  "Asset Identifier",
-  "Dollar Value",
-  "Currency",
-  "GICS Sector Code and Name",
-  "GICS Industry Group Code & Name",
-  "GICS Industry Code & name",
-  "GICS Sub-Industry Code and Name",
-];
-
-const dataStructHeadingsCC = [
-  "investmentOptionName",
-  "assetClass",
-  "assetName",
-  "assetIdentifier",
-  "dollarValue",
-  "currency",
-  "gicsSectorCodeAndName",
-  "gicsIndustryGroupCodeAndName",
-  "gicsIndustryCodeAndName",
-  "gicsSubIndustryCodeAndName",
-];
+import { aggregatedSuperFundHoldingsDataTableHeadings } from "@/lib/consts";
+import { uploadToSupabase } from "@/lib/utils";
 
 export type mappedDataStruct = {
   investmentOptionName: string | null;
@@ -108,28 +83,7 @@ const mapParsedDataToJSON = (parsedData: any[]): mappedDataStruct[] => {
 const CSVFileUpload: FC = () => {
   const [successfulUploadModalOpen, setSuccessfulUploadModalOpen] =
     useState(false);
-
-  const subscribedDataUpdated = supabase
-    .channel("custom-update-channel")
-    .on(
-      "postgres_changes",
-      { event: "UPDATE", schema: "public", table: "data" },
-      (payload) => {
-        console.log("Change received!", payload);
-      }
-    )
-    .subscribe();
-  const uploadToSupabase = async (parsedData: any[]) => {
-    try {
-      const { error } = await supabase.from("data").insert(parsedData);
-      if (error) {
-        throw error;
-      }
-      console.log("success");
-    } catch (error) {
-      console.error("Error uploading data:", error);
-    }
-  };
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   const handleFileUpload = useCallback(
     async (e: ChangeEvent<HTMLInputElement>) => {
@@ -145,10 +99,15 @@ const CSVFileUpload: FC = () => {
           const parsedData = Papa.parse(csvData as string, {
             header: false,
           }).data;
-          if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-            const slicedParsedData = parsedData.slice(0, 5);
-            const mappedData = mapParsedDataToJSON(slicedParsedData);
-            await uploadToSupabase(mappedData);
+          if (
+            validateParsedDataHeadings(
+              parsedData,
+              aggregatedSuperFundHoldingsDataTableHeadings
+            )
+          ) {
+            const mappedData = mapParsedDataToJSON(parsedData);
+            await uploadToSupabase(mappedData, "data");
+            setSuccessfulUploadModalOpen(true);
           } else {
             console.error("Invalid data format");
           }
@@ -161,12 +120,14 @@ const CSVFileUpload: FC = () => {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          if (validateParsedDataHeadings(parsedData, dataStructHeadings)) {
-            const slicedParsedData = parsedData;
-            console.log("CSV Sliced extract:", slicedParsedData);
-            const mappedData = mapParsedDataToJSON(slicedParsedData);
-            await uploadToSupabase(mappedData);
-            console.log("success upload");
+          if (
+            validateParsedDataHeadings(
+              parsedData,
+              aggregatedSuperFundHoldingsDataTableHeadings
+            )
+          ) {
+            const mappedData = mapParsedDataToJSON(parsedData);
+            await uploadToSupabase(mappedData, "data");
             setSuccessfulUploadModalOpen(true);
           } else {
             console.error("Invalid data format");
@@ -204,7 +165,7 @@ const CSVFileUpload: FC = () => {
                 onChange={handleFileUpload}
               />
             </label>
-            {/* <p className="pl-1">or drag and drop</p> */}
+            <p className="pl-1">{uploadedFileName}</p>
           </div>
           <p className="text-xs leading-5 text-gray-600">
             PNG, JPG, GIF up to 10MB

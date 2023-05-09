@@ -44,6 +44,12 @@ export default function DataPage() {
 
   return (
     <>
+      <button
+        className="p-2 bg-red-500 text-white rounded-md m-8"
+        onClick={deleteAllData}
+      >
+        Delete All
+      </button>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
@@ -136,12 +142,6 @@ export default function DataPage() {
           </div>
         </div>
       </div>
-      <button
-        className="p-2 bg-red-500 text-white rounded-md m-8"
-        onClick={deleteAllData}
-      >
-        Delete All
-      </button>
     </>
   );
 }
