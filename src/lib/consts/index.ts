@@ -11,7 +11,7 @@ export const aggregatedSuperFundHoldingsDataTableHeadings = [
   "GICS Sub-Industry Code and Name",
 ];
 
-const dataStructHeadingsCC = [
+export const dataStructHeadingsCC = [
   "investmentOptionName",
   "assetClass",
   "assetName",

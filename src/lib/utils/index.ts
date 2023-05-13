@@ -1,5 +1,8 @@
 import { supabase } from "../database/supabase";
-
+import {
+  aggregatedSuperFundHoldingsDataTableHeadings,
+  dataStructHeadingsCC,
+} from "../consts";
 /**
  *
  * @param data  the data to be validated
@@ -46,3 +49,11 @@ export const uploadToSupabase = async (parsedData: any[], table: string) => {
     console.error("Error uploading data:", error);
   }
 };
+
+export function mapToCamelCase(value: string): string | null {
+  const index = aggregatedSuperFundHoldingsDataTableHeadings.indexOf(value);
+  if (index !== -1) {
+    return dataStructHeadingsCC[index];
+  }
+  return null; // return null if value is not found
+}

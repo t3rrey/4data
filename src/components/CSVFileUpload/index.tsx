@@ -5,7 +5,7 @@ import { validateParsedDataHeadings } from "@/lib/utils";
 import { TableCellsIcon } from "@heroicons/react/20/solid";
 import SuccessfulUploadModal from "../SuccessfulUploadModal";
 import { aggregatedSuperFundHoldingsDataTableHeadings } from "@/lib/consts";
-import { uploadToSupabase } from "@/lib/utils";
+import { uploadToSupabase } from "@/lib/utils/customSupabaseFunction";
 
 export type mappedDataStruct = {
   investmentOptionName: string | null;
@@ -19,6 +19,12 @@ export type mappedDataStruct = {
   gicsIndustryCodeAndName: string | null;
   gicsSubIndustryCodeAndName: string | null;
 };
+
+/**
+ *
+ * This function, mapParsedDataToJSON, takes an array of parsed data and maps it to an array of JSON objects with a defined structure (mappedDataStruct).
+ * It iterates through each data row and assigns values based on the column header, creating a new rowObject for each row.
+ */
 
 const mapParsedDataToJSON = (parsedData: any[]): mappedDataStruct[] => {
   const headers = parsedData[0];
@@ -127,7 +133,7 @@ const CSVFileUpload: FC = () => {
             )
           ) {
             const mappedData = mapParsedDataToJSON(parsedData);
-            await uploadToSupabase(mappedData, "data");
+            await uploadToSupabase(mappedData.slice(0, 100), "data");
             setSuccessfulUploadModalOpen(true);
           } else {
             console.error("Invalid data format");

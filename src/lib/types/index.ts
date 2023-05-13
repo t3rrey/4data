@@ -11,4 +11,5 @@ export type SuperInvestmentRow = {
   gicsSubIndustryCodeAndName: string | null;
   id: number;
   investmentOptionName: string | null;
+  [key: string]: string | number | null | undefined;
 };
