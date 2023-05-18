@@ -1,14 +1,14 @@
 import { supabase } from "@/lib/database/supabase";
 import { useEffect, useState } from "react";
-import type { SuperInvestmentRow } from "@/lib/types";
 import { formatCurrency, mapToCamelCase } from "@/lib/utils";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { aggregatedSuperFundHoldingsDataTableHeadings } from "@/lib/consts";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { deleteAllDataFromSingleTable } from "@/lib/utils/customSupabaseFunction";
+import { SuperInvestmentHoldingsData } from "@/lib/types";
 
 export default function DataPage() {
-  const [data, setData] = useState<SuperInvestmentRow[]>([]);
+  const [data, setData] = useState<SuperInvestmentHoldingsData[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
@@ -36,7 +36,7 @@ export default function DataPage() {
 
     if (error) console.log("error", error);
     else {
-      setData(data as SuperInvestmentRow[]);
+      setData(data as SuperInvestmentHoldingsData[]);
       setLoaded(true);
     }
   };

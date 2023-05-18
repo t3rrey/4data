@@ -1,27 +1,30 @@
 import { useState } from "react";
 import useEffectOnce from "@/lib/hooks/useEffectOnce";
 import { supabase } from "@/lib/database/supabase";
+import { RecentUpload } from "@/lib/types";
+import { formatTimestamp } from "@/lib/utils";
 
-export type RecentUploadsData = {
-  name: string;
-  investmentOptionName: string;
-  uploadDate: string;
-  currentAsOfDate: string;
-  rowsAdded: number;
-};
+export interface RecentUploadJoined extends RecentUpload {
+  super_funds: {
+    id: string;
+    name: string;
+  };
+}
 
 export const RecentUploads = () => {
-  const [recentUploads, setRecentUploads] = useState<RecentUploadsData[]>([]);
+  const [recentUploads, setRecentUploads] = useState<RecentUploadJoined[]>([]);
 
   const fetchRecentUploads = async () => {
-    const { data, error } = await supabase.from("recent_uploads").select("*");
+    const { data, error } = await supabase
+      .from("recent_uploads")
+      .select(`*, super_funds(id, name)`);
 
     if (error) {
       console.log(error);
       return;
     }
 
-    setRecentUploads(data as RecentUploadsData[]);
+    setRecentUploads(data as RecentUploadJoined[]);
   };
 
   useEffectOnce(() => {
@@ -54,12 +57,6 @@ export const RecentUploads = () => {
                       scope="col"
                       className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                     >
-                      Investment Option
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
                       Upload Date
                     </th>
                     <th
@@ -86,26 +83,24 @@ export const RecentUploads = () => {
                   {recentUploads.map((upload, idx) => (
                     <tr key={idx}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {upload.name}
+                        {upload.super_funds.name}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {upload.investmentOptionName}
+                        {formatTimestamp(upload.created_at || "")}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {upload.uploadDate}
+                        {upload.current_as_of}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {upload.currentAsOfDate}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {upload.rowsAdded}
+                        {upload.rows_added}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <a
                           href="#"
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          Edit<span className="sr-only">, {upload.name}</span>
+                          Edit
+                          <span className="sr-only">, {upload.super_fund}</span>
                         </a>
                       </td>
                     </tr>
