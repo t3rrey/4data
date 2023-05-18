@@ -13,7 +13,12 @@ import { TableCellsIcon } from "@heroicons/react/20/solid";
 
 let navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
-  { name: "Add Data", href: "/upload", icon: PlusCircleIcon, current: false },
+  {
+    name: "Upload Data",
+    href: "/upload",
+    icon: PlusCircleIcon,
+    current: false,
+  },
   { name: "Data", href: "/data", icon: TableCellsIcon, current: false },
 
   {
