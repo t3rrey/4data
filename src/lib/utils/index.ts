@@ -15,6 +15,7 @@ export type UploadSuperInvestmentHoldingsData = {
   gicsSubIndustryCodeAndName: string | null;
   investmentOptionName: string | null;
   super_fund: number;
+  recent_uploads: number;
 };
 /**
  *
@@ -61,7 +62,8 @@ export function mapToCamelCase(value: string): string | null {
 
 export const mapParsedDataToJSON = (
   parsedData: any[],
-  superFundId: number
+  superFundId: number,
+  recentUploadsId: number
 ): UploadSuperInvestmentHoldingsData[] => {
   const headers = parsedData[0];
   const dataRows = parsedData.slice(1);
@@ -79,6 +81,7 @@ export const mapParsedDataToJSON = (
       gicsIndustryCodeAndName: null,
       gicsSubIndustryCodeAndName: null,
       super_fund: superFundId,
+      recent_uploads: recentUploadsId,
     };
 
     row.forEach((value: string, index: number) => {

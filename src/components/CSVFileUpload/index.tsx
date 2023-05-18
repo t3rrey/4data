@@ -4,7 +4,6 @@ import * as XLSX from "xlsx";
 import { validateParsedDataHeadings } from "@/lib/utils";
 import { TableCellsIcon } from "@heroicons/react/20/solid";
 import { aggregatedSuperFundHoldingsDataTableHeadings } from "@/lib/consts";
-import { mapParsedDataToJSON } from "@/lib/utils";
 import { SuperFund } from "@/lib/types";
 
 /**
@@ -48,11 +47,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
               aggregatedSuperFundHoldingsDataTableHeadings
             )
           ) {
-            const mappedData = mapParsedDataToJSON(
-              parsedData,
-              selectedSuperFund?.id || 1
-            );
-            setCSVData(mappedData);
+            setCSVData(parsedData);
           } else {
             console.error("Invalid data format");
           }
@@ -71,11 +66,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
               aggregatedSuperFundHoldingsDataTableHeadings
             )
           ) {
-            const mappedData = mapParsedDataToJSON(
-              parsedData,
-              selectedSuperFund?.id || 1
-            );
-            setCSVData(mappedData);
+            setCSVData(parsedData);
           } else {
             console.error("Invalid data format");
           }

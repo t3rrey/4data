@@ -1,9 +1,14 @@
 import ComboboxInput from "../inputs/comboboxInput";
 import CSVFileUpload from "../CSVFileUpload";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/database/supabase";
-import { SuperFund, SuperInvestmentHoldingsData } from "@/lib/types";
+import {
+  RecentUpload,
+  SuperFund,
+  SuperInvestmentHoldingsData,
+} from "@/lib/types";
 import useEffectOnce from "@/lib/hooks/useEffectOnce";
+import { mapParsedDataToJSON } from "@/lib/utils";
 
 export default function AddDataForm() {
   const [loaded, setLoaded] = useState(false);
@@ -35,24 +40,32 @@ export default function AddDataForm() {
 
   const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // Update the RecentUploads table
+    const { error: recent_upload_error, data: recent_upload }: any =
+      await supabase
+        .from("recent_uploads")
+        .insert({
+          current_as_of: date,
+          file_name: fileName,
+          super_fund: selectedSuperFund?.id,
+          rows_added: csvFileData.length,
+        })
+        .select();
 
-    // Update the SuperInvestmentHoldingsData table
-    const { error: error1 } = await supabase.from("data").insert(csvFileData);
+    if (recent_upload_error) {
+      console.error("Error updating RecentUploads table:", recent_upload_error);
+    }
+
+    const mappedData = mapParsedDataToJSON(
+      csvFileData,
+      selectedSuperFund?.id || 1,
+      recent_upload[0].id || 1
+    );
+
+    const { error: error1 } = await supabase.from("data").insert(mappedData);
     if (error1) {
       console.error("Error uploading CSV data:", error1);
       return;
-    }
-    // Update the RecentUploads table
-    const { error: recent_upload_error } = await supabase
-      .from("recent_uploads")
-      .insert({
-        current_as_of: date,
-        file_name: fileName,
-        super_fund: selectedSuperFund?.id,
-        rows_added: csvFileData.length,
-      });
-    if (recent_upload_error) {
-      console.error("Error updating RecentUploads table:", recent_upload_error);
     }
   };
 
