@@ -7,11 +7,12 @@ import { aggregatedSuperFundHoldingsDataTableHeadings } from "@/lib/consts";
 import { SuperFund } from "@/lib/types";
 
 /**
- *
- * This function, mapParsedDataToJSON, takes an array of parsed data and maps it to an array of JSON objects with a defined structure (mappedDataStruct).
- * It iterates through each data row and assigns values based on the column header, creating a new rowObject for each row.
+ * This component, CSVFileUpload, handles the uploading and parsing of CSV files.
+ * It takes the uploaded file, reads it, and parses the data based on the file type (csv or xlsx).
+ * If the parsed data has valid headings, it sets the CSV data using the setCSVData function.
  */
 
+// Define the props interface for CSVFileUpload component
 export interface ICSVFileUploadProps {
   setCSVData: any;
   fileName: string;
@@ -19,23 +20,27 @@ export interface ICSVFileUploadProps {
   selectedSuperFund: SuperFund | null;
 }
 
+// Define the CSVFileUpload component
 const CSVFileUpload: FC<ICSVFileUploadProps> = ({
   setCSVData,
   fileName,
   setFileName,
   selectedSuperFund,
 }) => {
+  // Handle file upload event
   const handleFileUpload = useCallback(
     async (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
+      // Set the file name in state
       setFileName(file.name);
 
       const fileType = file.name.split(".").pop();
       const reader = new FileReader();
 
       if (fileType === "csv") {
+        // Read and parse CSV file
         reader.onload = async () => {
           const csvData = reader.result;
           const parsedData = Papa.parse(csvData as string, {
@@ -47,6 +52,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
               aggregatedSuperFundHoldingsDataTableHeadings
             )
           ) {
+            // Set the parsed data in state
             setCSVData(parsedData);
           } else {
             console.error("Invalid data format");
@@ -54,6 +60,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
         };
         reader.readAsText(file);
       } else if (fileType === "xlsx") {
+        // Read and parse XLSX file
         reader.onload = async () => {
           const data = new Uint8Array(reader.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: "array" });
@@ -66,6 +73,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
               aggregatedSuperFundHoldingsDataTableHeadings
             )
           ) {
+            // Set the parsed data in state
             setCSVData(parsedData);
           } else {
             console.error("Invalid data format");
@@ -78,7 +86,8 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
     },
     []
   );
-
+  
+  // Render the file upload component
   return (
     <>
       <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">

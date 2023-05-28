@@ -3,6 +3,7 @@ import {
   dataStructHeadingsCC,
 } from "../consts";
 
+// Type definition for the data structure to be uploaded
 export type UploadSuperInvestmentHoldingsData = {
   assetClass: string | null;
   assetIdentifier: string | null;
@@ -39,6 +40,13 @@ export const validateParsedDataHeadings = (
   return true;
 };
 
+/**
+ * Formats a number as currency.
+ * @param input The number to format.
+ * @param currency The currency symbol to use.
+ * @returns The formatted currency string.
+ */
+
 export const formatCurrency = (
   input: number | null,
   currency: string | null
@@ -52,6 +60,11 @@ export const formatCurrency = (
   return formatted.substring(1);
 };
 
+/**
+ * Maps a given value to its corresponding camelCase value.
+ * @param value The value to map to camelCase.
+ * @returns The camelCase value or null if not found.
+ */
 export function mapToCamelCase(value: string): string | null {
   const index = aggregatedSuperFundHoldingsDataTableHeadings.indexOf(value);
   if (index !== -1) {
@@ -59,6 +72,15 @@ export function mapToCamelCase(value: string): string | null {
   }
   return null; // return null if value is not found
 }
+
+
+/**
+ * Maps parsed data to an array of UploadSuperInvestmentHoldingsData objects.
+ * @param parsedData The parsed data to map.
+ * @param superFundId The ID of the super fund associated with the data.
+ * @param recentUploadsId The ID of the recent upload associated with the data.
+ * @returns An array of mapped UploadSuperInvestmentHoldingsData objects.
+ */
 
 export const mapParsedDataToJSON = (
   parsedData: any[],
@@ -125,6 +147,12 @@ export const mapParsedDataToJSON = (
     return rowObject;
   });
 };
+
+/**
+ * Formats a timestamp string to a localized date string.
+ * @param timestamp The timestamp string to format.
+ * @returns The formatted date string.
+ */
 
 export const formatTimestamp = (timestamp: string): string => {
   let date: Date = new Date(timestamp);

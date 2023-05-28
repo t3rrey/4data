@@ -1,3 +1,4 @@
+//Supabase link, url and key to access the data in the database
 import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = "https://pukkfcmklvjmkwjatoox.supabase.co";
 const supabaseKey =

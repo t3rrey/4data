@@ -11,6 +11,7 @@ import BTFinancialLogo from "../logo";
 import { useRouter } from "next/router";
 import { TableCellsIcon } from "@heroicons/react/20/solid";
 
+//Define the navigation items for the sidebar
 let navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
   {
@@ -29,18 +30,22 @@ let navigation = [
   },
 ];
 
+//Helper function to conditionally apply CSS classes
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+//Define the props interface for the Dashboard component
 type DashboardLayoutProps = {
   children?: ReactNode;
 };
 
+//Define the Dashboard component
 const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
+  // Update the "current" property of navigation items based on the current route 
   const updateNavigationCurrent = () => {
     navigation = navigation.map((item) => {
       return {
@@ -50,6 +55,7 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
     });
   };
 
+  // Update the navigation items when the route changes
   useEffect(() => {
     updateNavigationCurrent();
     console.log(router.asPath);

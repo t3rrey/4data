@@ -8,6 +8,7 @@ import { deleteAllDataFromSingleTable } from "@/lib/utils/customSupabaseFunction
 import { SuperInvestmentHoldingsData } from "@/lib/types";
 
 export default function DataPage() {
+  //Define state variables
   const [data, setData] = useState<SuperInvestmentHoldingsData[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -17,10 +18,12 @@ export default function DataPage() {
     aggregatedSuperFundHoldingsDataTableHeadings[0]
   );
 
+  //Function to handle search input change
   const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
   };
-
+  
+  //Function to fetch data from the server (Supabase)
   const fetchData = async () => {
     let query = supabase
       .from("data")
@@ -42,9 +45,11 @@ export default function DataPage() {
   };
 
   useEffect(() => {
+  // Fetch data when searchInput, sortOrder, or sortColumn change
     fetchData();
   }, [searchInput, sortOrder, sortColumn]);
 
+  // Function to handle sorting click
   const handleSortClick = (column: string) => {
     if (sortColumn === column) {
       setSortOrder((prevSortOrder) => {
@@ -58,11 +63,13 @@ export default function DataPage() {
     }
   };
 
+  // Function to handle delete all button click
   const onDeleteAllClick = async () => {
     deleteAllDataFromSingleTable("data");
     fetchData();
   };
 
+  // Function to handle select option change
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSearchOptions(event.target.value);
   };

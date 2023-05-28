@@ -3,12 +3,14 @@ import { supabase } from "@/lib/database/supabase";
 import { Dialog, Transition } from "@headlessui/react";
 import { FC, Fragment } from "react";
 
+//Define the props interface for Confirm
 export interface IConfirmDeleteModal {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   selectedUpload: RecentUploadJoined | null;
 }
 
+// Define the ConfirmDeleteModal component
 const ConfirmDeleteModal: FC<IConfirmDeleteModal> = ({
   isOpen,
   setIsOpen,
@@ -16,6 +18,7 @@ const ConfirmDeleteModal: FC<IConfirmDeleteModal> = ({
 }) => {
   const closeModal = () => setIsOpen(false);
 
+  // Handle the delete confirmation
   const handleConfirm = async () => {
     const { error: delete_from_data_error } = await supabase
       .from("data")

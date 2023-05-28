@@ -11,6 +11,7 @@ import useEffectOnce from "@/lib/hooks/useEffectOnce";
 import { mapParsedDataToJSON } from "@/lib/utils";
 
 export default function AddDataForm() {
+  //State variables to hold form data and control component behaviour
   const [loaded, setLoaded] = useState(false);
   const [csvFileData, setCsvFileData] = useState<SuperInvestmentHoldingsData[]>(
     []
@@ -23,6 +24,7 @@ export default function AddDataForm() {
   );
   const [date, setDate] = useState<string>("");
 
+  // Function to fetch Super Fund names from the database
   const getSuperFundNames = async () => {
     let { data: super_funds, error } = await supabase
       .from("super_funds")
@@ -34,10 +36,12 @@ export default function AddDataForm() {
     }
   };
 
+  // Fetch Super Fund names when the component mounts
   useEffectOnce(() => {
     getSuperFundNames();
   });
 
+  // Handle form submission
   const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Update the RecentUploads table
@@ -56,12 +60,14 @@ export default function AddDataForm() {
       console.error("Error updating RecentUploads table:", recent_upload_error);
     }
 
+    // Map parsed CSV data to JSON format
     const mappedData = mapParsedDataToJSON(
       csvFileData,
       selectedSuperFund?.id || 1,
       recent_upload[0].id || 1
     );
 
+    // Insert mapped data into the 'data' table
     const { error: error1 } = await supabase.from("data").insert(mappedData);
     if (error1) {
       console.error("Error uploading CSV data:", error1);
@@ -69,6 +75,7 @@ export default function AddDataForm() {
     }
   };
 
+  // Render a loading message if data is not yet loaded
   if (!loaded) {
     return (
       <div>
@@ -76,6 +83,8 @@ export default function AddDataForm() {
       </div>
     );
   }
+
+  // Render the form
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-12 sm:space-y-16">

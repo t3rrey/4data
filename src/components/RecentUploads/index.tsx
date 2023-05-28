@@ -5,6 +5,7 @@ import { RecentUpload } from "@/lib/types";
 import { formatTimestamp } from "@/lib/utils";
 import ConfirmDeleteModal from "../modals/ConfirmDeleteModal";
 
+// Define the interface for RecentUploadJoined which extends RecentUpload
 export interface RecentUploadJoined extends RecentUpload {
   super_funds: {
     id: string;
@@ -12,12 +13,15 @@ export interface RecentUploadJoined extends RecentUpload {
   };
 }
 
+// Define the RecentUploads component
 export const RecentUploads = () => {
+  // Define state variables
   const [recentUploads, setRecentUploads] = useState<RecentUploadJoined[]>([]);
   const [selectedUpload, setSelectedUpload] =
     useState<RecentUploadJoined | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Fetch recent uploads from the database
   const fetchRecentUploads = async () => {
     const { data, error } = await supabase
       .from("recent_uploads")
@@ -30,16 +34,19 @@ export const RecentUploads = () => {
     setRecentUploads(data as RecentUploadJoined[]);
   };
 
+  // Fetch recent uploads when the component mounts
   useEffectOnce(() => {
     fetchRecentUploads();
   });
 
+  // Handle delete action for an upload
   const handleDelete = (upload: RecentUploadJoined) => {
     setSelectedUpload(upload);
     setModalOpen(true);
   };
 
   useEffect(() => {
+    // Subscribe to the custom-delete-channel for changes in recent_uploads table
     const recentUploads = supabase
       .channel("custom-delete-channel")
       .on(
