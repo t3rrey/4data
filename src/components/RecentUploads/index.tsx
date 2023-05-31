@@ -4,6 +4,7 @@ import { supabase } from "@/lib/database/supabase";
 import { RecentUpload } from "@/lib/types";
 import { formatTimestamp } from "@/lib/utils";
 import ConfirmDeleteModal from "../modals/ConfirmDeleteModal";
+import LoadingIcon from "../LoadingIcon";
 
 // Define the interface for RecentUploadJoined which extends RecentUpload
 export interface RecentUploadJoined extends RecentUpload {
@@ -20,6 +21,7 @@ export const RecentUploads = () => {
   const [selectedUpload, setSelectedUpload] =
     useState<RecentUploadJoined | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Fetch recent uploads from the database
   const fetchRecentUploads = async () => {
@@ -32,6 +34,7 @@ export const RecentUploads = () => {
     }
 
     setRecentUploads(data as RecentUploadJoined[]);
+    setLoading(true);
   };
 
   // Fetch recent uploads when the component mounts
@@ -58,12 +61,22 @@ export const RecentUploads = () => {
     fetchRecentUploads();
   }, [recentUploads]);
 
+  if (!loading) {
+    return (
+      <div className="flex w-full mt-56">
+        <div className="w-40 mx-auto">
+          <LoadingIcon className="text-black" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-base font-semibold leading-6 text-gray-900">
+            <h1 className="text-3xl font-semibold leading-7 text-gray-900">
               Recent Uploads
             </h1>
           </div>

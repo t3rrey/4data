@@ -1,11 +1,23 @@
 import { supabase } from "@/lib/database/supabase";
 import { useEffect, useState } from "react";
-import { formatCurrency, mapToCamelCase } from "@/lib/utils";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import { aggregatedSuperFundHoldingsDataTableHeadings } from "@/lib/consts";
-import { ChevronUpIcon } from "@heroicons/react/20/solid";
-import { deleteAllDataFromSingleTable } from "@/lib/utils/customSupabaseFunction";
+import {
+  formatCurrency,
+  toCamelCaseArray,
+  toSnakeCaseArray,
+} from "@/lib/utils";
+import {
+  aggregatedSuperFundHoldingsDataTableHeadings,
+  dataStructHeadingsCC,
+} from "@/lib/consts";
 import { SuperInvestmentHoldingsData } from "@/lib/types";
+import GeneralCombo from "@/components/inputs/GeneralCombo";
+import LoadingIcon from "@/components/LoadingIcon";
+import { CloudArrowDownIcon } from "@heroicons/react/20/solid";
+
+type filteredHeading = {
+  heading: string;
+  values: string[];
+};
 
 export default function DataPage() {
   //Define state variables
@@ -15,8 +27,9 @@ export default function DataPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
   const [sortColumn, setSortColumn] = useState("");
   const [searchOptions, setSearchOptions] = useState<string>(
-    aggregatedSuperFundHoldingsDataTableHeadings[0]
+    dataStructHeadingsCC[0]
   );
+  const [filterHeadings, setFilterHeadings] = useState<filteredHeading[]>([]);
 
   //Function to handle search input change
   const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,8 +41,7 @@ export default function DataPage() {
     let query = supabase
       .from("data")
       .select("*")
-      .filter(`${mapToCamelCase(searchOptions)}`, "ilike", `%${searchInput}%`)
-      .range(0, 15);
+      .ilike(searchOptions, `%${searchInput}%`);
 
     if (sortOrder && sortColumn) {
       query = query.order(sortColumn, { ascending: sortOrder === "asc" });
@@ -39,15 +51,63 @@ export default function DataPage() {
 
     if (error) console.log("error", error);
     else {
+      console.log("data", data);
       setData(data as SuperInvestmentHoldingsData[]);
-      setLoaded(true);
     }
   };
+
+  const queryBuilder = (values: { column: string; value: string }[]) => {
+    let query = supabase.from("data").select("*").range(0, 15);
+
+    values.forEach((value) => {
+      query = query.or(value.column + ".ilike." + value.value + "%");
+    });
+
+    return query;
+  };
+
+  const fetchTableSortHeadings = async () => {
+    const formattedArray: string[] = toSnakeCaseArray(
+      aggregatedSuperFundHoldingsDataTableHeadings
+    ); // convert the headings to snake case
+
+    const formattedArrayCamelCase: string[] = toCamelCaseArray(
+      aggregatedSuperFundHoldingsDataTableHeadings
+    ); // convert the headings to camel case
+
+    let tableData: filteredHeading[] = []; // 2D array to store table data
+
+    const getAllUniqueData = async () => {
+      for (let i = 0; i < formattedArray.length; i++) {
+        let item = formattedArray[i];
+        let { data: uniqueData, error } = await supabase.from(item).select("*");
+        if (error) console.log("error", error);
+        else if (uniqueData) {
+          // Extract the 'property1' from each object and convert it to string
+          let stringData = uniqueData.map((data: { [x: string]: any }) =>
+            String(data[formattedArrayCamelCase[i]])
+          );
+
+          // Add the extracted strings to the tableData array
+          // Prepend the table heading and index to the data
+          tableData.push({ heading: item, values: stringData });
+        }
+      }
+    };
+
+    await getAllUniqueData();
+    setFilterHeadings(tableData);
+    setLoaded(true);
+  };
+
+  useEffect(() => {
+    fetchTableSortHeadings();
+  }, []);
 
   useEffect(() => {
   // Fetch data when searchInput, sortOrder, or sortColumn change
     fetchData();
-  }, [searchInput, sortOrder, sortColumn]);
+  }, [searchInput, sortOrder, sortColumn, searchOptions]);
 
   // Function to handle sorting click
   const handleSortClick = (column: string) => {
@@ -63,21 +123,37 @@ export default function DataPage() {
     }
   };
 
-  // Function to handle delete all button click
-  const onDeleteAllClick = async () => {
-    deleteAllDataFromSingleTable("data");
-    fetchData();
+  const downloadToCSV = async () => {
+    const { data, error } = await supabase.from("data").select("*").csv();
+    if (error) {
+      console.error(error);
+      return;
+    }
+    const csvData = new Blob([data], { type: "text/csv" });
+    const csvUrl = URL.createObjectURL(csvData);
+    const link = document.createElement("a");
+    link.href = csvUrl;
+    link.download = "data.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(csvUrl);
   };
 
-  // Function to handle select option change
-  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSearchOptions(event.target.value);
-  };
+  if (!loaded) {
+    return (
+      <div className="flex w-full mt-56">
+        <div className="w-40 mx-auto">
+          <LoadingIcon className="text-black" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="flex">
-        <div className="relative mt-2 flex items-center grow">
+        <div className="relative flex items-center grow">
           <input
             type="text"
             name="search"
@@ -92,31 +168,26 @@ export default function DataPage() {
             </kbd>
           </div>
         </div>
-        <div>
-          <select name="option" onChange={handleSelectChange}>
-            {aggregatedSuperFundHoldingsDataTableHeadings.map(
-              (heading, idx) => (
-                <option key={idx}>{heading}</option>
-              )
-            )}
-          </select>
-        </div>
+        <select
+          onChange={(event) => setSearchOptions(event.target.value)}
+          className="p-0 border border-gray-300 rounded mx-2 pl-2"
+        >
+          {dataStructHeadingsCC.map((heading, idx) => (
+            <option value={heading} key={idx}>
+              {heading}
+            </option>
+          ))}
+        </select>
       </div>
-
-      <button
-        className="p-2 bg-red-500 text-white rounded-md m-8"
-        onClick={onDeleteAllClick}
-      >
-        Delete All
-      </button>
+      <div>
+        <button
+          onClick={downloadToCSV}
+          className="mt-12 mb-2 ml-6 flex p-2 bg-blue-500 font-semibold text-white rounded-lg"
+        >
+          <CloudArrowDownIcon className="w-6 mr-1" /> Download to CSV
+        </button>
+      </div>
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-base font-semibold leading-6 text-gray-900">
-              Data
-            </h1>
-          </div>
-        </div>
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -124,38 +195,21 @@ export default function DataPage() {
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
-                      {aggregatedSuperFundHoldingsDataTableHeadings.map(
-                        (heading, idx) => (
+                      {filterHeadings.map((item: filteredHeading, idx) => {
+                        return (
                           <th
                             scope="col"
-                            className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                            className="py-3.5 text-left text-sm font-semibold text-gray-900"
                             key={idx}
                           >
-                            {heading}
-                            <button
-                              name="sort-table"
-                              className="m-1"
-                              onClick={() =>
-                                handleSortClick(mapToCamelCase(heading) || "")
-                              }
-                            >
-                              {sortOrder === "asc" ? (
-                                <ChevronDownIcon className="w-4 h-4 bg-gray-500 text-white rounded-md" />
-                              ) : sortOrder === "desc" ? (
-                                <ChevronUpIcon className="w-4 h-4 bg-gray-500 text-white rounded-md" />
-                              ) : sortOrder === null ? (
-                                <ChevronDownIcon className="w-4 h-4" />
-                              ) : null}
-                            </button>
+                            <GeneralCombo
+                              key={idx}
+                              placeholder={item.heading}
+                              options={item.values}
+                            />
                           </th>
-                        )
-                      )}
-                      <th
-                        scope="col"
-                        className="relative py-3.5 pl-3 pr-4 sm:pr-6"
-                      >
-                        <span className="sr-only">Edit</span>
-                      </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -192,18 +246,6 @@ export default function DataPage() {
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {row.gicsSubIndustryCodeAndName}
-                            </td>
-
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                              <a
-                                href="#"
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                Edit
-                                <span className="sr-only">
-                                  , {row.investmentOptionName}
-                                </span>
-                              </a>
                             </td>
                           </tr>
                         ))}

@@ -159,3 +159,42 @@ export const formatTimestamp = (timestamp: string): string => {
   let formattedTime: string = date.toLocaleDateString();
   return formattedTime;
 };
+
+export function toSnakeCaseArray(inputArray: string[]): string[] {
+  return inputArray.map((str) => toSnakeCase(str));
+}
+
+export function toSnakeCase(str: string): string {
+  return (
+    "unique_" +
+    str
+      .replace(/&/g, "and") // replace '&' with 'and'
+      .replace(/-/g, "_") // replace '-' with '_'
+      .replace(/\s+/g, " ") // replace multiple spaces with a single space
+      .split(" ") // split by space
+      .join("_") // join by underscore
+      .toLowerCase() // convert to lower case
+  ); // convert to lower case
+}
+
+export function toCamelCaseArray(arr: string[]): string[] {
+  return arr.map((str) => toCamelCase(str));
+}
+
+export function toCamelCase(str: string): string {
+  // Replace special characters with a space
+  str = str.replace(/[^a-zA-Z0-9 ]/g, " ");
+  // Split the string into words
+  const words = str.split(" ");
+
+  // Convert the first word to lower case
+  const firstWord = words[0].toLowerCase();
+
+  // Convert the first character of each of the remaining words to upper case
+  const camelCaseWords = words
+    .slice(1)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+
+  // Join the first word with the rest of the words
+  return firstWord + camelCaseWords.join("");
+}

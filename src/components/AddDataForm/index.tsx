@@ -1,14 +1,12 @@
 import ComboboxInput from "../inputs/comboboxInput";
 import CSVFileUpload from "../CSVFileUpload";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/database/supabase";
-import {
-  RecentUpload,
-  SuperFund,
-  SuperInvestmentHoldingsData,
-} from "@/lib/types";
+import { SuperFund, SuperInvestmentHoldingsData } from "@/lib/types";
 import useEffectOnce from "@/lib/hooks/useEffectOnce";
 import { mapParsedDataToJSON } from "@/lib/utils";
+import LoadingIcon from "../LoadingIcon";
+import SuccessfulUploadModal from "../SuccessfulUploadModal";
 
 export default function AddDataForm() {
   //State variables to hold form data and control component behaviour
@@ -23,6 +21,7 @@ export default function AddDataForm() {
     null
   );
   const [date, setDate] = useState<string>("");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   // Function to fetch Super Fund names from the database
   const getSuperFundNames = async () => {
@@ -43,6 +42,7 @@ export default function AddDataForm() {
 
   // Handle form submission
   const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
+    setLoaded(false);
     event.preventDefault();
     // Update the RecentUploads table
     const { error: recent_upload_error, data: recent_upload }: any =
@@ -73,97 +73,107 @@ export default function AddDataForm() {
       console.error("Error uploading CSV data:", error1);
       return;
     }
+    setLoaded(true);
+    setShowSuccessMessage(true);
   };
 
   // Render a loading message if data is not yet loaded
   if (!loaded) {
     return (
-      <div>
-        <h1>Loading...</h1>
+      <div className="flex w-full mt-56">
+        <div className="w-40 mx-auto">
+          <LoadingIcon className="text-black" />
+        </div>
       </div>
     );
   }
 
   // Render the form
   return (
-    <form onSubmit={onSubmit}>
-      <div className="space-y-12 sm:space-y-16">
-        <div>
-          <h2 className="text-3xl font-semibold leading-7 text-gray-900">
-            Add new data
-          </h2>
-          <div className="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-            <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-              <label
-                htmlFor="first-name"
-                className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
-              >
-                Super Fund
-              </label>
-              <div className="mt-2 sm:col-span-2 sm:mt-0">
-                <ComboboxInput
-                  superFunds={superFunds}
-                  setSelectedSuperFund={setSelectedSuperFund}
-                />
+    <>
+      <SuccessfulUploadModal
+        isOpen={showSuccessMessage}
+        setIsOpen={setShowSuccessMessage}
+      />
+      <form onSubmit={onSubmit}>
+        <div className="space-y-12 sm:space-y-16">
+          <div>
+            <h1 className="text-3xl font-semibold leading-7 text-gray-900">
+              Add new data
+            </h1>
+            <div className="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+              <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                <label
+                  htmlFor="first-name"
+                  className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
+                >
+                  Super Fund
+                </label>
+                <div className="mt-2 sm:col-span-2 sm:mt-0">
+                  <ComboboxInput
+                    superFunds={superFunds}
+                    setSelectedSuperFund={setSelectedSuperFund}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-              <label
-                htmlFor="first-name"
-                className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
-              >
-                File name
-              </label>
-              <div className="mt-2 sm:col-span-2 sm:mt-0">
-                <input
-                  onChange={(e) => setFileName(e.target.value)}
-                  type="text"
-                  name="file name"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                />
+              <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                <label
+                  htmlFor="first-name"
+                  className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
+                >
+                  File name
+                </label>
+                <div className="mt-2 sm:col-span-2 sm:mt-0">
+                  <input
+                    onChange={(e) => setFileName(e.target.value)}
+                    type="text"
+                    name="file name"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-              <label
-                htmlFor="last-name"
-                className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
-              >
-                Current as of
-              </label>
-              <div className="mt-2 sm:col-span-2 sm:mt-0">
-                <input
-                  onChange={(e) => setDate(e.target.value)}
-                  type="date"
-                  name="current as of"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                />
+              <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                <label
+                  htmlFor="last-name"
+                  className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
+                >
+                  Current as of
+                </label>
+                <div className="mt-2 sm:col-span-2 sm:mt-0">
+                  <input
+                    onChange={(e) => setDate(e.target.value)}
+                    type="date"
+                    name="current as of"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                  />
+                </div>
               </div>
-            </div>
 
-            <CSVFileUpload
-              setCSVData={setCsvFileData}
-              fileName={rawFileName}
-              setFileName={setRawFileName}
-              selectedSuperFund={selectedSuperFund}
-            />
+              <CSVFileUpload
+                setCSVData={setCsvFileData}
+                fileName={rawFileName}
+                setFileName={setRawFileName}
+                selectedSuperFund={selectedSuperFund}
+              />
+            </div>
           </div>
         </div>
-      </div>
-      <div className="mt-6 flex items-center justify-end gap-x-6">
-        <button
-          type="button"
-          className="text-sm font-semibold leading-6 text-gray-900"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Add Data
-        </button>
-      </div>
-    </form>
+        <div className="mt-6 flex items-center justify-end gap-x-6">
+          <button
+            type="button"
+            className="text-sm font-semibold leading-6 text-gray-900"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Add Data
+          </button>
+        </div>
+      </form>
+    </>
   );
 }
