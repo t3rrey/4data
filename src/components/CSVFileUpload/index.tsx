@@ -49,7 +49,6 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
           ) {
             setCSVData(parsedData);
           } else {
-            console.error("Invalid data format");
           }
         };
         reader.readAsText(file);

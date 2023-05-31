@@ -1,4 +1,4 @@
-import { FC, Fragment, useState, ReactNode, useEffect } from "react";
+import { FC, Fragment, useState, ReactNode } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   Bars3Icon,
@@ -9,8 +9,6 @@ import {
 } from "@heroicons/react/24/outline";
 import BTFinancialLogo from "../logo";
 import { useRouter } from "next/router";
-import { TableCellsIcon } from "@heroicons/react/20/solid";
-
 let navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
   {
@@ -19,11 +17,9 @@ let navigation = [
     icon: PlusCircleIcon,
     current: false,
   },
-  { name: "Data", href: "/data", icon: TableCellsIcon, current: false },
-
   {
-    name: "Search",
-    href: "/search",
+    name: "Search Data",
+    href: "/data",
     icon: MagnifyingGlassIcon,
     current: false,
   },
@@ -41,27 +37,13 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
-  const updateNavigationCurrent = () => {
-    navigation = navigation.map((item) => {
-      return {
-        ...item,
-        current: router.asPath === item.href,
-      };
-    });
-  };
-
-  useEffect(() => {
-    updateNavigationCurrent();
-    console.log(router.asPath);
-  }, [router.asPath, updateNavigationCurrent]);
-
   return (
     <>
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
             as="div"
-            className="relative z-50 lg:hidden"
+            className="relative z-40 lg:hidden"
             onClose={setSidebarOpen}
           >
             <Transition.Child
@@ -124,7 +106,7 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
                                 <a
                                   href={item.href}
                                   className={classNames(
-                                    item.current
+                                    item.href === router.asPath
                                       ? "bg-gray-800 text-white"
                                       : "text-gray-400 hover:text-white hover:bg-gray-800",
                                     "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
@@ -150,7 +132,7 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
         </Transition.Root>
 
         {/* Static sidebar for desktop */}
-        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+        <div className="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col">
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
             <div className="flex shrink-0 items-center">
@@ -165,7 +147,7 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
                         <a
                           href={item.href}
                           className={classNames(
-                            item.current
+                            item.href === router.asPath
                               ? "bg-gray-800 text-white"
                               : "text-gray-400 hover:text-white hover:bg-gray-800",
                             "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
