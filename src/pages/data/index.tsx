@@ -12,12 +12,14 @@ import {
 import { SuperInvestmentHoldingsData } from "@/lib/types";
 import GeneralCombo from "@/components/inputs/GeneralCombo";
 import LoadingIcon from "@/components/LoadingIcon";
-import { CloudArrowDownIcon } from "@heroicons/react/20/solid";
+import { ChevronLeftIcon, CloudArrowDownIcon } from "@heroicons/react/20/solid";
 
 type filteredHeading = {
   heading: string;
   values: string[];
 };
+
+const PAGE_SIZE = 20;
 
 export default function DataPage() {
   //Define state variables
@@ -30,18 +32,21 @@ export default function DataPage() {
     dataStructHeadingsCC[0]
   );
   const [filterHeadings, setFilterHeadings] = useState<filteredHeading[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   //Function to handle search input change
   const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
   };
-  
+
   //Function to fetch data from the server (Supabase)
-  const fetchData = async () => {
+  const fetchData = async (page: number) => {
+    const offset = (page - 1) * PAGE_SIZE;
     let query = supabase
       .from("data")
       .select("*")
-      .ilike(searchOptions, `%${searchInput}%`);
+      .ilike(searchOptions, `%${searchInput}%`)
+      .range(offset, offset + PAGE_SIZE - 1);
 
     if (sortOrder && sortColumn) {
       query = query.order(sortColumn, { ascending: sortOrder === "asc" });
@@ -100,14 +105,22 @@ export default function DataPage() {
     setLoaded(true);
   };
 
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(currentPage - 1);
+  };
+
   useEffect(() => {
     fetchTableSortHeadings();
   }, []);
 
   useEffect(() => {
-  // Fetch data when searchInput, sortOrder, or sortColumn change
-    fetchData();
-  }, [searchInput, sortOrder, sortColumn, searchOptions]);
+    // Fetch data when searchInput, sortOrder, or sortColumn change
+    fetchData(currentPage);
+  }, [searchInput, sortOrder, sortColumn, searchOptions, currentPage]);
 
   // Function to handle sorting click
   const handleSortClick = (column: string) => {
@@ -257,6 +270,31 @@ export default function DataPage() {
                 </table>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="w-full flex mt-2">
+          <div className="ml-auto flex">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 flex flex-1"
+            >
+              <span>
+                <ChevronLeftIcon className="w-6" />
+              </span>
+              Previous
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={data.length < PAGE_SIZE}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex flex-1"
+            >
+              Next
+              <span>
+                <ChevronLeftIcon className="w-6 rotate-180" />
+              </span>
+            </button>
           </div>
         </div>
       </div>

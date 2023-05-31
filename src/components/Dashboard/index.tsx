@@ -9,7 +9,6 @@ import {
 } from "@heroicons/react/24/outline";
 import BTFinancialLogo from "../logo";
 import { useRouter } from "next/router";
-import { TableCellsIcon } from "@heroicons/react/20/solid";
 
 //Define the navigation items for the sidebar
 
@@ -44,23 +43,7 @@ const Dashboard: FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
-
-  // Update the "current" property of navigation items based on the current route 
-  const updateNavigationCurrent = () => {
-    navigation = navigation.map((item) => {
-      return {
-        ...item,
-        current: router.asPath === item.href,
-      };
-    });
-  };
-
-  // Update the navigation items when the route changes
-  useEffect(() => {
-    updateNavigationCurrent();
-    console.log(router.asPath);
-  }, [router.asPath, updateNavigationCurrent]);
-
+  // Update the "current" property of navigation items based on the current route
 
   return (
     <>
