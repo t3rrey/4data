@@ -3,14 +3,19 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Combobox } from "@headlessui/react";
 import { SuperFund } from "@/lib/types";
 
+// Helper function to conditionally apply CSS classes
 function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
+
+// Define the props interface for ComboboxInput component
 export interface IComboboxInput {
   superFunds: SuperFund[];
   setSelectedSuperFund?: React.Dispatch<React.SetStateAction<SuperFund | null>>;
   selectedSuperFund?: SuperFund | null;
 }
+
+// Define the ComboboxInput component
 const ComboboxInput: FC<IComboboxInput> = ({
   superFunds,
   selectedSuperFund,
@@ -18,6 +23,7 @@ const ComboboxInput: FC<IComboboxInput> = ({
 }) => {
   const [query, setQuery] = useState<string>("");
 
+  // Filter the superFunds based on the query
   const filteredSuperFunds: SuperFund[] =
     query === ""
       ? superFunds

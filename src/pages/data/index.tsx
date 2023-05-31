@@ -20,6 +20,7 @@ type filteredHeading = {
 };
 
 export default function DataPage() {
+  //Define state variables
   const [data, setData] = useState<SuperInvestmentHoldingsData[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -30,10 +31,12 @@ export default function DataPage() {
   );
   const [filterHeadings, setFilterHeadings] = useState<filteredHeading[]>([]);
 
+  //Function to handle search input change
   const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
   };
-
+  
+  //Function to fetch data from the server (Supabase)
   const fetchData = async () => {
     let query = supabase
       .from("data")
@@ -102,9 +105,11 @@ export default function DataPage() {
   }, []);
 
   useEffect(() => {
+  // Fetch data when searchInput, sortOrder, or sortColumn change
     fetchData();
   }, [searchInput, sortOrder, sortColumn, searchOptions]);
 
+  // Function to handle sorting click
   const handleSortClick = (column: string) => {
     if (sortColumn === column) {
       setSortOrder((prevSortOrder) => {

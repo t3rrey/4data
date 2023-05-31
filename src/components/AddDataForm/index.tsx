@@ -9,6 +9,7 @@ import LoadingIcon from "../LoadingIcon";
 import SuccessfulUploadModal from "../SuccessfulUploadModal";
 
 export default function AddDataForm() {
+  //State variables to hold form data and control component behaviour
   const [loaded, setLoaded] = useState(false);
   const [csvFileData, setCsvFileData] = useState<SuperInvestmentHoldingsData[]>(
     []
@@ -22,6 +23,7 @@ export default function AddDataForm() {
   const [date, setDate] = useState<string>("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+  // Function to fetch Super Fund names from the database
   const getSuperFundNames = async () => {
     let { data: super_funds, error } = await supabase
       .from("super_funds")
@@ -33,10 +35,12 @@ export default function AddDataForm() {
     }
   };
 
+  // Fetch Super Fund names when the component mounts
   useEffectOnce(() => {
     getSuperFundNames();
   });
 
+  // Handle form submission
   const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     setLoaded(false);
     event.preventDefault();
@@ -56,12 +60,14 @@ export default function AddDataForm() {
       console.error("Error updating RecentUploads table:", recent_upload_error);
     }
 
+    // Map parsed CSV data to JSON format
     const mappedData = mapParsedDataToJSON(
       csvFileData,
       selectedSuperFund?.id || 1,
       recent_upload[0].id || 1
     );
 
+    // Insert mapped data into the 'data' table
     const { error: error1 } = await supabase.from("data").insert(mappedData);
     if (error1) {
       console.error("Error uploading CSV data:", error1);
@@ -71,6 +77,7 @@ export default function AddDataForm() {
     setShowSuccessMessage(true);
   };
 
+  // Render a loading message if data is not yet loaded
   if (!loaded) {
     return (
       <div className="flex w-full mt-56">
@@ -80,6 +87,8 @@ export default function AddDataForm() {
       </div>
     );
   }
+
+  // Render the form
   return (
     <>
       <SuccessfulUploadModal
