@@ -23,3 +23,12 @@ export const dataStructHeadingsCC = [
   "gicsIndustryCodeAndName",
   "gicsSubIndustryCodeAndName",
 ];
+
+const uniqueValsList = [
+  "unique_investment_option_name",
+  "unique_asset_class",
+  "unique_asset_name",
+  "unique_asset_identifier",
+  "unique_dollar_value",
+  "unique_currency",
+];

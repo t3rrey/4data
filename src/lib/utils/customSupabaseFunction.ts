@@ -1,3 +1,4 @@
+import Papa from "papaparse";
 import { supabase } from "../database/supabase";
 
 export const uploadToSupabase = async (parsedData: any[], table: string) => {
