@@ -105,6 +105,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
                 id="file-upload"
                 name="file-upload"
                 type="file"
+                accept=".xlsx .csv"
                 className="sr-only"
                 onChange={handleFileUpload}
               />
