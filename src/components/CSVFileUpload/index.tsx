@@ -105,6 +105,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
                 id="file-upload"
                 name="file-upload"
                 type="file"
+                accept=".xlsx .csv"
                 className="sr-only"
                 onChange={handleFileUpload}
               />
@@ -112,7 +113,7 @@ const CSVFileUpload: FC<ICSVFileUploadProps> = ({
             <p className="pl-4 text-black font-bold">{fileName}</p>
           </div>
           <p className="text-xs leading-5 text-gray-600">
-            PNG, JPG, GIF up to 10MB
+            CSV and XLXS up to 10mb
           </p>
         </div>
       </div>
